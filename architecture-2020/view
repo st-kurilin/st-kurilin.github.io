@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>View</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>View</h1>
+<h2>We've had some UI that can be used to create an item. It's now time to build one that will show these items.</h2>
+<ul><li>Part 1:	<a href='./abstract'>Abstract</a></li><li>Part 2:	<a href='./domain'>Domain</a></li><li>Part 3:	View</li><li>Part 4:	<a href='./run'>Run</a></li><li>Part 5:	<a href='./final'>Final</a></li></ul>
+</section>
+
+<section>
+    <h3>First View</h3>
+    <p>
+Our component will save some data on events. For this example, we will go with in-memory storage. It can be easily replaced with real DB.
+
+On each component's render call data will be fetched from that storage.
+
+<pre><code class='language-javascript'>
+const items = {0: {title: "pre created item", description: "demo only"}};
+
+const onEvent = e => {
+    switch (e.name) {
+        case "item-created":
+            items[e.data.id] = e.data;
+            break;
+        case "item-marked-as-done":
+            delete items[e.data.id];
+            break;
+    }
+};
+
+const onFetch = id => items[id] || {};
+
+const testEmptyObjectForNonExistingItemsReturned = t => {
+    t.assertEquals({}, onFetch(123));
+};
+
+const testItemDataReturnedForExistingItem = t => {
+    const id= 123;
+    const title = "loundary";
+    const description= "Wash tshirt";
+    onEvent({name: "item-created", data: {id, title, description}});
+    t.assertEquals({id, title, description}, onFetch(123));
+};
+
+const testItemDataIsnotReturnedAfterItsMarkedAsDone = t => {
+    const id= 123;
+    const title = "loundary";
+    const description= "Wash tshirt";
+    onEvent({name: "item-created", data: {id, title, description}});
+    onEvent({name: "item-marked-as-done", data: {id}});
+    t.assertEquals({}, onFetch(123));
+};
+
+var itemViewExports = {
+    listener: onEvent,
+    httpFilter: next => (req, res) => {
+        if (req.url.startsWith("/view/items/")) {
+            const id = req.url.split("/")[3];
+            res.end(JSON.stringify(onFetch(id)));
+        } else {
+            next(req, res);
+        }
+    },
+    render: (target, params) => {
+        fetch("/view/items/" + params.id).then(r => r.json()).then(item => {
+            target.innerHTML = `<a href="/index.html">back</a><p><h2>${item.title}</h2>${item.description}</p>`
+        });
+    },
+    test: t => {
+        testEmptyObjectForNonExistingItemsReturned(t);
+        testItemDataReturnedForExistingItem(t);
+        testItemDataIsnotReturnedAfterItsMarkedAsDone(t);
+    }
+};
+
+module.exports = itemViewExports;
+</code></pre>
+
+So, the expected flow is
+Each time a user creates an item, <code lang='language-bash'<pre>item-view.onEvent</pre></code> called and data saved.Each time user open page, <code lang='language-bash'<pre>item-view.render</pre></code> called and date retrieved with <code lang='language-bash'<pre>item-view.onFetch</pre></code>.</p>
+</section>
+<section>
+    <h3>List View</h3>
+    <p>
+Item lists view could be implemented in a similar fashion to <code lang='language-bash'<pre>item-view</pre></code>.
+<pre><code class='language-javascript'>
+let itemsList = [{id: 123, title: "wash stuff"}, {id: 45, title: "clean something"}];
+
+var itemsListExports = {
+    listener: e => {
+        switch (e.name) {
+            case "item-created":
+                itemsList.push(e.data);
+                break;
+            case "item-marked-as-done":
+                itemsList = itemsList.filter(it => it.id !== e.id);
+                break;
+        }
+    },
+    httpFilter: next => (req, res) => {
+        if (req.url.endsWith("/view/items-list")) {
+            res.end(JSON.stringify(itemsList));
+        } else {
+            next(req, res);
+        }
+    },
+    render: target => {
+        target.innerHTML = "<div><div id='newitem'></div><div id='items'></div></div>";
+
+        itemsListExports.render(document.getElementById("items"));
+
+        fetch("/view/items-list").then(r => r.json()).then(items => {
+            const renderedItems = items.map(it => `<li><a href="?itemid=${it.id}">${it.title}</a></li>`);
+            document.getElementById("items").innerHTML = `<ul>${renderedItems.join("")}</ul>`
+        });
+    },
+    test: t => {
+        //TODO:
+    }
+};
+
+module.exports = itemsListExports;
+</code></pre>
+
+The distinguishing thing is that we put new-item-creation component inside items-list. In this way, we make our UI composable.
+    </p>
+</section>
+<section>
+    <h3>Putting Views Together</h3>
+Once all views defined we can join them under the same umbrella. In a similar way how features were joined after the domain.
+
+<pre><code class='language-javascript'>
+const itemView = require('./item.view');
+const itemsListView = require('./items-list.view');
+
+var viewsExports = {
+    listener: e => {
+        itemView.listener(e);
+        itemsListView.listener(e);
+    },
+    httpFilter: next => itemView.httpFilter(itemsListView.httpFilter(next)),
+    render: (target, props) => {
+        if (props.itemId) {
+            itemViewExports.render(target, {id: props.itemId});
+        } else {
+            mainScreenRender(document.getElementById("main"));
+        }
+
+    },
+    test: (t) => {
+        itemView.test(t);
+        itemsListView.test(t);
+    }
+};
+
+module.exports = viewsExports;
+
+</code></pre>
+
+
+<code lang='language-bash'<pre>listener</pre></code> and <code lang='language-bash'<pre>httpFilter</pre></code> methods are composing this views in different ways. <code lang='language-bash'<pre>listener</pre></code> sequentially calls each listener. <code lang='language-bash'<pre>httpFilter</pre></code> does the similar thing by chaining functions.
+<code lang='language-bash'<pre>render</pre></code> method does the simplest dispatch. It decides with a page to show based on params provided.</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./abstract'>Abstract</a></li><li>Part 2:	<a href='./domain'>Domain</a></li><li>Part 3:	View</li><li><strong>Next:</strong> 	Part 4:	<a href='./run'>Run</a></li><li>Part 5:	<a href='./final'>Final</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

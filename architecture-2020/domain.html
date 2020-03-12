@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Domain</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Domain</h1>
+<h2>We will start with features for our app.</h2>
+<ul><li>Part 1:	<a href='./abstract.html'>Abstract</a></li><li>Part 2:	Domain</li><li>Part 3:	<a href='./view.html'>View</a></li><li>Part 4:	<a href='./run.html'>Run</a></li><li>Part 5:	<a href='./final.html'>Final</a></li></ul>
+</section>
+<section>
+    <h3>Features Definition</h3>
+    <p>
+        Our todo app will have just two features. Creating todo item and marking existing items as done.
+        We will start with creation. Each item would have a title and description. Both fields are simple text fields
+        with the title being constraint by length.
+
+        We can describe this feature with a single function that either return JSON object representing creation event
+        or throws an exception.
+
+<pre><code class='language-javascript'>
+const createItem = (data) => {
+    const {title, description} = data;
+    if (data.title.length > 20) {
+        throw "item title to long";
+    } else {
+        const id = Math.floor(Math.random() * 1000);
+        return {name: "item-created", data: {id, title, description}};
+    }
+};
+
+const testSuccessfulItemCreation = (t) => {
+    const item = {title: "write first test", description: "tests are important"};
+    const data = {title: item.title, description: item.description};
+    const event = t.assertDefined(createItem(data));
+
+    t.assertEquals(event.title, "item-created");
+    t.assertDefined(event.data.id);
+    t.assertEquals(item.title, event.data.title, );
+    t.assertEquals(item.description, event.data.description);
+};
+
+const testFailingCreation = (t) => {
+    const item = {title: "item with too long title", description: "tests are important"};
+    const data = {title: item.title, description: item.description};
+    try {
+        const events = createItem(data);
+        t.assertEquals("Exception", events)
+    } catch (e) {
+        t.assertEquals(e, "item title to long")
+    }
+};
+
+module.exports = {
+    commandHandler: createItem,
+    test: t => {
+        testSuccessfulItemCreation(t);
+        testFailingCreation(t);
+    }
+};
+
+</code></pre>
+
+        There is no need to put feature tests separately from the feature itself.
+
+        We will go with even simpler implementation for our second feature.
+
+<pre><code class='language-javascript'>
+const markItemAsDone = (data) => {
+    if (!data.id) {
+        throw "item id is missing";
+    }
+    //TODO: verify that item with such id exists
+    return [{id: data.id, name: "item-marked-as-done"}]
+};
+
+module.exports = {
+    commandHandler: markItemAsDone,
+    test: t => {
+        //TODO: add tests
+    }
+};
+
+</code></pre>
+
+
+        In this way, we described all our features as an independent component. In the next one, we will tie them
+        together.
+    </p>
+</section>
+
+
+<section>
+    <h3>Domain Definition</h3>
+    <p>
+    We just described two features as independent components. Now we will build our domain description based on them.
+
+<pre><code class='language-javascript'>
+const createItem = require('./create-item.feature');
+const markItemAsDone = require('./mark-item-as-done.feature');
+
+
+//helper function to parse JSON from incoming POST requests
+const parseBody = (req, callback) => {
+    let body = "";
+    req.on('data', chunk => {
+        body += chunk
+    }).on('end', () => {
+        callback(JSON.parse(body))
+    });
+};
+
+//helper function to send post requests
+const commandSender = cmdName => body => {
+    return fetch('/cmd/' + cmdName, {method: "POST", body: JSON.stringify(body)})
+        .catch(err => {
+            alert("Something went wrong: " + JSON.stringify(err));
+        })
+};
+
+var domainExports = {
+    httpFilter: (eventListener, next) => (req, res) => {
+        if (req.method === 'POST') {
+            parseBody(req, body => {
+                switch (req.url) {
+                    case '/cmd/create-item':
+                        eventListener(createItem.commandHandler(body));
+                        res.end();
+                        break;
+                    case '/cmd/mark-item-as-done':
+                        eventListener(markItemAsDone.commandHandler(body));
+                        res.end();
+                        break;
+                    default:
+                        next(req, res);
+                }
+            })
+        } else {
+            next(req, res)
+        }
+    },
+    httpClient: {
+        createItem: commandSender("create-item"),
+        markItemAsDone: commandSender("mark-item-as-done")
+    },
+    test: (t) => {
+        createItem.test(t);
+        markItemAsDone.test(t);
+    }
+};
+
+module.exports = domainExports;
+
+</code></pre>
+
+    The trickiest part here is <code lang='language-bash'<pre>httpFilter</pre></code>. It is a function that produces HTTP handler. To produce it, it requires two    arguments. First one is <code lang='language-bash'<pre>eventListener</pre></code>. We will talk later about it, but this is an entity that will react to all    events produced by our domain. Like, what should actually happen when new item created. Second argument <code lang='language-bash'<pre>next</pre></code> is    another HTTP handler that should be called if this httpFilter cannot handle this request. We will use this pattern
+    to build a chain of httpFilters to avoid creating single dispatcher.
+    With having this arguments httpFilter calls command handlers to produce events. When events produced, it notifies
+    event listeners.
+
+    <code lang='language-bash'<pre>httpClient</pre></code> provides functions that can be used to call this logic over HTTP.    Putting <code lang='language-bash'<pre>httpClient</pre></code> and <code lang='language-bash'<pre>httpFilter</pre></code> next to each other makes a lot of sense since they are highly coupled and will    be changed together.
+
+    <code lang='language-bash'<pre>test</pre></code> is simple. It just calls tests defined in the feature, but more tests can be introduced here for better    domain coverage.
+
+    <code lang='language-bash'<pre>domainExports</pre></code> declared as a <code lang='language-bash'<pre>var</pre></code> to allow usage from another file when ES6 modules are not in use. This is a    minor thing and you don't need to understand it.
+
+
+    We've defined our domain and described HTTP interface to interact with it. Now we will define some UI that would use
+    it to create items.
+
+<pre><code class='language-javascript'>
+const handleCreate = () => {
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+    domainExports.httpClient.createItem({title, description}).then(() => {
+        location.reload()
+    });
+};
+
+var createItemExports = {
+    render: target => {
+        const title = "<input id='title' />";
+        const description = "<input id='description' />";
+        const button = "<button onclick='handleCreate()'>create</button>";
+        target.innerHTML = `<div>$Domain${description}${button}</div>`;
+    },
+};
+
+</code></pre>
+
+    It assumes that <code lang='language-bash'<pre>domainExports.httpClient</pre></code> is somehow available.    In the render method, we will directly change <code lang='language-bash'<pre>innerHtml</pre></code>. You can think about it as a simplified version of    react-style rendering.
+
+    We will keep UI separately from domain description since it could one-of-many ways to create it.
+
+    </p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./abstract.html'>Abstract</a></li><li>Part 2:	Domain</li><li><strong>Next:</strong> 	Part 3:	<a href='./view.html'>View</a></li><li>Part 4:	<a href='./run.html'>Run</a></li><li>Part 5:	<a href='./final.html'>Final</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

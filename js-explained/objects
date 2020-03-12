@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Objects</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Objects</h1>
+<h2>Objects are special kind of data. They are so important that we put them into separate article.</h2>
+<ul><li>Part 1:	<a href='./basic-syntax'>Basic Syntax</a></li><li>Part 2:	Objects</li><li>Part 3:	<a href='./functions'>Functions</a></li><li>Part 4:	<a href='./alternative-syntax'>Alternative Syntax</a></li><li>Part 5:	<a href='./use-case'>Use Case</a></li></ul>
+</section>
+
+<section>
+<h3>Introduction</h3>
+You can start thinking about them as a dictionary, where by some key you can get value.
+
+<pre><code class='language-javascript'>
+//create dictionary with 2 elements
+let englishToGerman = {"Hi": "Hallo", "Beer": "Bier"};
+//add individual element
+englishToGerman["Umbrella"] = "Regenschirm";
+//change individual element
+englishToGerman["Umbrella"] = "Schirm";
+//access individual element
+console.log(englishToGerman["Umbrella"]);
+</code></pre>
+</section>
+
+<section>
+<h3>More complex example</h3>
+The real power comes when you understand how you can put complex structures as values
+
+<pre><code class='language-javascript'>
+let person = {
+    "firstName": "Bob", //string -> string
+    lastName: "Allan",  //alternative declaration: no brackets around key
+    age: 23,            //string -> digit
+    relatives: {        //string -> object
+        brother: "Peter",
+        mother: "Kate"
+    },
+    greetings: (address) => {   //string -> function
+        return "Aloha " + address
+    }
+};
+
+//Accessing field
+console.log(person["firstName"]);    //-> "Bob"
+//Alternative syntax to access field
+console.log(person.age);    //-> 23
+console.log(person.greetings("John"));    //-> "Aloha John
+</code></pre>
+</section>
+
+
+<section>
+<h3>Homework</h3>
+To practice you can describe some legal document like driving license as an javascript object.
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./basic-syntax'>Basic Syntax</a></li><li>Part 2:	Objects</li><li><strong>Next:</strong> 	Part 3:	<a href='./functions'>Functions</a></li><li>Part 4:	<a href='./alternative-syntax'>Alternative Syntax</a></li><li>Part 5:	<a href='./use-case'>Use Case</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

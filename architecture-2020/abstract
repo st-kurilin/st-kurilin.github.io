@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Abstract</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Abstract</h1>
+<h2>In this article, we will speculate about how software architecture might look like in the next decade. In the first part we will define what good software means. In further parts we'll build a sample following this definition.</h2>
+<ul><li>Part 1:	Abstract</li><li>Part 2:	<a href='./domain'>Domain</a></li><li>Part 3:	<a href='./view'>View</a></li><li>Part 4:	<a href='./run'>Run</a></li><li>Part 5:	<a href='./final'>Final</a></li></ul>
+</section>
+
+<section>
+<h3>The Main Principle</h3>
+<p>
+    With time we had different limitations on performance and interfaces, but values remained the same.
+    We were always looking for technics that would allow us to create solutions fast and extend them easily.
+</p>
+
+<p>
+    There are many recommendations on how good software should be created. However, many of them can be inferred form a
+    single idea.
+    It's is coherence & cohesion. In short, it's about putting related concepts together and non-related concepts
+    separately.
+<ul>
+    <li><i>Single Responsibility Principle</i> - consider different responsibilities as different concepts and it
+        becomes clear that they need to be separated.
+    </li>
+    <li><i>Don't Repeat Yourself</i> - if everything related to one entity stays together you are unlikely to have a
+        need to express the same thing twice.
+    </li>
+    <li>...</li>
+</ul>
+
+You can see how we show how Coherence&Cohesion principle is fundamental in understanding what are good software design principles. However, the important challenge it brings is understanding what concepts that we should think about are.
+</section>
+<section>
+<h3>Layered History</h3>
+Concepts that people used to think evolved over time. In 1967 Melvin Conway claimed that software architecture is a product of organizational structure. For a long time, we were able to see different teams responsible for
+<ul>
+    <li>site markup</li>
+    <li>page logic itself and communicating with the server</li>
+    <li>core data manipulation</li>
+    <li>the database</li>
+    <li>testing</li>
+</ul>
+
+So they used to be a different concepts. To support it layered architecture was created.
+With it we had highly specialised engineers. I.e. the one did care only about database.
+There are could be productivity benefits from that.
+However, to deliver single feature we need to collaborate across all teams. And people are not extremely good in collaboration.
+</section>
+
+
+<section>
+<h3>Layers Today</h3>
+
+<p>
+    To overcomes collaborations issues layers got merged. Now, it's often too fat layers - backend and frontend.
+</p>
+<p>
+
+    Layers inside this two fat layers got merged.
+    On backend, Ruby-on-Rails developers put in controller what used to be split across Data-Access-Level, Services, and
+    Controllers. On the frontend, React developers are putting markup and js together.
+</p>
+
+<p>
+    You can expect that there gonna be further merge inside this two layers.
+    And as a next step, we can expect raise of full-stack developers.
+    It's not that unrealistic since JavaScript gets everywhere.
+</p>
+</section>
+
+<section><h3>Post-Layers Architecture</h3>
+<p>
+    We will explore with concepts remain since there no technical borders in our solutions.
+    For general guidance we will be taking ideas for domain-driven-design powered by command-query
+    responsibility-segregation.
+</p>
+<p>
+    In our example we will be building todo app.
+    We are not gonna use any libraries so you can follow it even if you are not familiar with tools that were released
+    last week.
+</p>
+</p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	Abstract</li><li><strong>Next:</strong> 	Part 2:	<a href='./domain'>Domain</a></li><li>Part 3:	<a href='./view'>View</a></li><li>Part 4:	<a href='./run'>Run</a></li><li>Part 5:	<a href='./final'>Final</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

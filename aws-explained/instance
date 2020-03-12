@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Instance</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Instance</h1>
+<h2>In this article we will learn how to run simple applications on AWS.</h2>
+<ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	<a href='./network-101'>Network 101</a></li><li>Part 3:	Instance</li><li>Part 4:	<a href='./server'>Server</a></li><li>Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+<section>
+    <h3>Image selection</h3>
+    <p>
+    You can think about instance as an single server. But before getting one you need to specify the basement.
+    This basement includes operating system, installed program and hardware specifications. In amazon it called image.
+    </p>
+    <p>
+        To identify images <code lang='language-bash'<pre>ami-id</pre></code> id are used. We are going to use Ubuntu in this tutorial.        It has different <code lang='language-bash'<pre>ami-id</pre></code> in different regions.    </p>
+    <p>
+        To find this id you can check you availability zones via <code lang='language-bash'<pre>aws ec2 describe-availability-zones</pre></code>.        And that search for id at <a href="https://cloud-images.ubuntu.com/locator/ec2/">Amazon EC2 AMI Locator</a>.
+    </p>
+</section>
+<section>
+    <h3>Running Instance</h3>
+     To run one execute command
+    <code>
+        aws ec2 run-instances --image-id ami-0bbe6b35405ecebdb --instance-type t2.nano aws  awskeys3 --query
+        'Instances[0].InstanceId'
+    </code>
+
+    We've specified ubuntu as a basic via image-id. <code lang='language-bash'<pre>t2.nano</pre></code> is smallest server we can get. As an output we've got    <code lang='language-bash'<pre>InstanceId</pre></code>.    You can do the same using web interface on <a href="https://console.aws.amazon.com/ec2/v2/home?#Instances">EC2
+    page</a>.
+</section>
+
+<section>
+    <h3>Describe Instances</h3>
+    To get information about instances you can use <code lang='language-bash'<pre>describe-instances</pre></code> command.    As an example let's find out IP address of instance that we've just run
+    <code>
+        aws ec2 describe-instances --instance-ids INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress'
+    </code>
+    Since instances are hidden by default we will not be able to access it for now.
+</section>
+
+
+<section>
+    <h3>Security Groups</h3>
+    To describe additional access amazon provides Security Groups. It has inbound and outbound rules.
+    Default groups allows internal inbound access (you can access one instance from another).
+    It also allows any access to outside world in outbound rules. You can formalise it as
+    <code>
+        Outbound: ALL_PROTOCOLs ALL_PORTs 0.0.0.0/0
+        Inbound: ALL_PROTOCOLs ALL_PORTs YOU_OWN_NETWORK
+    </code>
+
+    Notice how <code lang='language-bash'<pre>0.0.0.0/0</pre></code> is used to note all IPs. To make it publicly accessible we will need to add 2 more rules    <code>
+        Inbound: HTTP 80 0.0.0.0/0
+        Inbound: SSH 24 0.0.0.0/0
+    </code>
+
+    We will describe that rules in newly created security group named <code lang='language-bash'<pre>MyPublicServer</pre></code>    <code>
+        aws ec2 create-security-group --group-name MyPublicServer --description "for internet facing instances"
+    </code>
+    As an output we will get security group ID. You can view created groups under <a
+        href="https://console.aws.amazon.com/ec2/v2/home?#SecurityGroups">Security Groups page</a>.
+    Then we assigning described rules. We can reference created group by name or id.
+    <code>
+        aws ec2 authorize-security-group-ingress --group-id GROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+        aws ec2 authorize-security-group-ingress --group-name MyPublicServer --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+    </code>
+    Once security group created we assign it to instance. Security group can be referenced only by id (not name!)
+    <code>
+        aws ec2 modify-instance-attribute --instance-id INSTANCE_ID --groups GROUP_ID
+    </code>
+    </p>
+
+    <p>
+    <h3>Accessing Instance</h3>
+    After making server available we can execute ssh commands there.
+    <code>
+        ssh -oStrictHostKeyChecking=no -i awskeys.pem ubuntu@IP 'df -H'
+    </code>
+
+    <code lang='language-bash'<pre>-oStrictHostKeyChecking=no</pre></code> is added to prevent additional questions. You can go further and run a simplest web    server there
+
+    <code>
+        ssh -i awskeys.pem ubuntu@IP 'echo -e "HTTP/1.0 200 OK\r\n\r\nBOOM" | sudo nc -lp 80'
+    </code>
+
+    Once it's run you can access your instance via browser using IP!
+    </p>
+
+
+    <p>
+    <h3>Terminating instance</h3>
+    Once instance is not needed it can be terminated to prevent unnecessary costs.
+
+    <code>
+        aws ec2 terminate-instances --instance-ids INSTANCE_ID
+    </code>
+    </p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	<a href='./network-101'>Network 101</a></li><li>Part 3:	Instance</li><li><strong>Next:</strong> 	Part 4:	<a href='./server'>Server</a></li><li>Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

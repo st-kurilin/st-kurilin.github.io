@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Use Case</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Use Case</h1>
+<h2>In this acticle we will put things that we learned previously together.</h2>
+<ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	<a href='./functions.html'>Functions</a></li><li>Part 4:	<a href='./alternative-syntax.html'>Alternative Syntax</a></li><li>Part 5:	Use Case</li></ul>
+</section>
+<section>
+    <h3>Problem Definition</h3>
+    <p>
+        One common data manipulation is sorting. The reason why you want to order things is to be able
+        to do a search faster.
+        Imagine how much longer would it take to find a book in
+        large library where books are placed in arbitary order. You would need to check it one by one.
+        Putting it in some order will speed up lookup dramatically.
+
+
+        Let's assume that we have a small library
+
+<pre><code class='language-javascript'>
+const data = [
+    {title: "Alice in Wonderland", author: "Lewis Carroll", year: 1865},
+    {title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", year: 1997},
+    {title: "Fahrenheit 451", author: "Ray Bradbury", year: 1953},
+];
+</code></pre>
+
+        To put it in order we will sort them by publishing year
+
+<pre><code class='language-javascript'>
+const compareByYear = (a, b) => {
+    return a.year - b.year;
+};
+</code></pre>
+
+        Before going to sorting itself lets define function that can actually check if array sorted
+
+<pre><code class='language-javascript'>
+//input: array of numbers or strings
+//output: true if sorted, false otherwise
+const isSorted = (array, comparator) => {
+    for (let i = 1; i < array.length; i++) {
+        if (comparator(array[i], array[i - 1]) < 0) {
+            return false;
+        }
+    }
+    return true;
+};
+</code></pre>
+
+
+        It makes sure that each element in array is bigger than previous one.
+        We don't need to check it for first element because there are no elements before it.
+    </p>
+</section>
+<section>
+    <h3>Solution</h3>
+    <p>
+        Now let's move to sorting itself.
+        The most dumpest method is just to change order in some random way. Sooner or later it will be randomly changed
+        to sorted order.
+        To do that we will define function that swaps two arbitrary elements.
+
+<pre><code class='language-javascript'>
+//input: array
+//modifies input: two random elements swapped
+const swapRandomElements = array => {
+    const randomInteger = (max) => {
+        //Math.random() gives a random number from 0 to 1
+        //Math.round() rounds result to nearest integer
+        return Math.round(Math.random() * (max - 1));
+    };
+    const index1 = randomInteger(array.length);
+    let index2 = randomInteger(array.length);   //cannot be declared as const
+    while (index1 == index2) {
+        index2 = randomInteger(array.length);
+    }
+    const element2 = array[index2];
+    const element1 = array[index1];
+    array[index1] = element2;
+    array[index2] = element1;
+};
+</code></pre>
+
+        <code lang='language-bash'<pre>randomInteger</pre></code> generates integer up to input. Ue, for 3, allowed outputs are: 0, 1, 2.        All we do is fins two different random indexes and swap then.
+
+
+        When this functions defined, implementing sorting itself is trivial.
+
+<pre><code class='language-javascript'>
+//input: array of numbers or strings
+//output: sorted array with the same elements as inout, ordered
+const sort = array => {
+    while (!isSorted(array)) {
+        swapRandomElements(array);
+    }
+};
+
+console.log("Before:", data);
+sort(data, compareByYear);
+console.log("After:", data);
+</code></pre>
+    </p>
+</section>
+<section>
+    <h3>Homework</h3>
+    <p>
+        As a homework you can sort this books by author. If author, same title should be taken into account.
+        As advance homework consider changing sorting method to so called merge sort or selection sort.
+    </p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	<a href='./functions.html'>Functions</a></li><li>Part 4:	<a href='./alternative-syntax.html'>Alternative Syntax</a></li><li>Part 5:	Use Case</li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

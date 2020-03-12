@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Alternative Syntax</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Alternative Syntax</h1>
+<h2>In this article we will go with things that are not neccesarry to understand JS, but they used so much that it's essential to get them.</h2>
+<ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	<a href='./functions.html'>Functions</a></li><li>Part 4:	Alternative Syntax</li><li>Part 5:	<a href='./use-case.html'>Use Case</a></li></ul>
+</section>
+<section>
+    <h3>Alternative declarations</h3>
+    <p>
+<pre><code class='language-javascript'>
+let a = 1;
+var b = 1;      //almost the same as "let b = 1;"
+const c = 1;    //declaring c as a constant that cannot be changed
+
+a += 3;         //the same as "a = a + 3;"
+a /= 2;         //the same as "a = a / 2;"
+a++;            //almost the same as "a = a + 1;"
+--a;            //almost the same as "a = a - 1;"
+</code></pre>
+
+        You really don't need spend time to get understanding difference between <code lang='language-bash'<pre>let</pre></code> and <code lang='language-bash'<pre>var</pre></code>. Spend it on something        meaningfull!
+    </p>
+
+    <p>
+        There are alternative syntaxes for function declarations.
+
+<pre><code class='language-javascript'>
+const foo = (arg) => {
+    return arg + 2;
+};
+
+const foo2 = arg => {
+    return arg + 2;
+};
+
+const foo3 = arg => arg + 2;
+
+function foo4(arg) {
+    return arg + 2;
+}
+</code></pre>
+
+        Note how brackets can be omitted for simple functions.
+    </p>
+</section>
+
+
+<section>
+    <h3>Alternative Data Structures</h3>
+    <p>
+        There is a special case for objects where all keys are numbers - arrays.
+
+<pre><code class='language-javascript'>
+let germanCars = ["BMV", "Audi"];
+let frenchCars = ["Peugeot", "Citroen", "Renault"];
+let danishCars = [];
+
+let euCars = germanCars.concat(frenchCars).concat(danishCars);
+
+
+//get total number
+console.log(euCars.length); //-> 5
+//add one more element
+euCars.push("Fiat");
+//access individual element
+console.log(frenchCars[1]); //-> "Peugeot"
+//change "Fiat" element
+germanCars[1] = "volkswagen";
+</code></pre>
+
+        You can use objects in all cases where array might be used, but using arrays might be way more efficient.
+    </p>
+</section>
+
+
+<section>
+    <h3>Alternative Flow Control Structures</h3>
+    <p>
+        There is also alternative syntax for loops declarations
+
+<pre><code class='language-javascript'>
+//loop with condition
+let c = 1;
+while (c < 10) {
+    console.log("C = ", c);
+    c++;
+}
+
+//shorthand syntax usage with couter
+for (let c = 1; c < 10; c++) {
+    console.log("C = ", c);
+}
+</code></pre>
+    </p>
+    <p>
+        And alternative syntax to check value
+
+<pre><code class='language-javascript'>
+//classical if-then-else
+const a = "bar";
+if (a == "foo") {
+    console.log("a == foo");
+} else if (a == "bar") {
+    console.log("a != foo && a == bar");
+} else {
+    console.log("a != foo && a != bar");
+}
+
+//switch syntax
+switch (a) {
+    case "foo": {
+        console.log("a == foo");
+        break;
+    }
+    case "bar": {
+        console.log("a != foo && a == bar");
+        break;
+    }
+    default: console.log("a != foo && a != bar");
+}
+</code></pre>
+
+    </p>
+
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	<a href='./functions.html'>Functions</a></li><li>Part 4:	Alternative Syntax</li><li><strong>Next:</strong> 	Part 5:	<a href='./use-case.html'>Use Case</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

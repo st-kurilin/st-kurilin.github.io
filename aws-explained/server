@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Server</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Server</h1>
+<h2>In this article we will run more real web servers.</h2>
+<ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	<a href='./network-101'>Network 101</a></li><li>Part 3:	<a href='./instance'>Instance</a></li><li>Part 4:	Server</li><li>Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+We will also will go with more advance syntax on command execution compared to previous article.
+
+
+<p>
+<h3>Develop app</h3>
+We will have simplest app that would work handle http traffic and work with db.
+We will use node.js app but the same principles would go to any other programming language.
+First let's create <code lang='language-bash'<pre>app.js</pre></code>
+<pre><code class='language-javascript'>
+const express = require('express');
+const request = require('request');
+const pg = require('pg');
+
+
+let connectedToDb = false;
+
+const client = new pg.Client();
+client.connect().then(() => {
+    client.query('CREATE TABLE IF NOT EXISTS items(id SERIAL PRIMARY KEY, text VARCHAR(40) not null)');
+    connectedToDb = true;
+    console.log("Connected to db", process.env.PGHOST)
+}).catch(e => {
+    console.warn("ERR while connecting to database", process.env.PGHOST, e)
+});
+
+const app = express();
+app.get('/', (req, res) => {
+    if (connectedToDb) {
+        client.query('INSERT INTO items(text) values($1)', [new Date().getTime()]);
+
+        client.query('SELECT COUNT(*) FROM items', (err, dbres) => {
+            res.send(err ? err.stack : JSON.stringify(dbres.rows));
+        });
+    } else {
+        res.send("Not connected to DB");
+    }
+});
+
+
+app.listen(80, '0.0.0.0');
+</code></pre>
+
+We are using libraries to serve http requests and to connect to database. That's needs to be described in <code lang='language-bash'<pre>package.json</pre></code>
+<pre><code class='language-bash'>
+{
+  "dependencies": {
+    "express": "latest",
+    "pg": "latest"
+  }
+}
+</code></pre>
+
+</p>
+
+<p>
+<h3>Creating DB</h3>
+Most of applications use some kind of database to persist their data.
+You can run it on your own instance or use Relational Database Service (RDS) from Amazon.
+Using RDS may make things like db version updates and reseration copy easier.
+<code>
+    aws rds create-db-instance \
+    --db-instance-identifier i-mydb --engine postgres \
+    --allocated-storage 20 --db-instance-class db.t2.medium \
+    --db-name store --master-username master --master-user-password secretpass
+</code>
+
+We've specified that we want <code lang='language-bash'<pre>Postgres</pre></code> running on <code lang='language-bash'<pre>db.t2.medium</pre></code> instance with <code lang='language-bash'<pre>20 GB</pre></code> allocated to db.We've also specified db name and user/password. The db instance will be named <code lang='language-bash'<pre>i-mydb</pre></code> while database name gonna be <code lang='language-bash'<pre>store</pre></code>.The running databases are placed on <a href="https://console.aws.amazon.com/rds/home?#dbinstances:">RDS page</a>.
+After db creation we need to obtain endpoint. It takes about 5 minutes till you get actual endpoint intead of <code lang='language-bash'<pre>None</pre></code><code>
+    aws rds describe-db-instances --db-instance-identifier mydb --query DBInstances[0].Endpoint.Address
+</code>
+
+You can recheck it manually or with script
+<code>
+    while :; do {
+    CMD="aws rds describe-db-instances --db-instance-identifier i-mydb --query DBInstances[0].Endpoint.Address";
+    DB=$($CMD);
+    echo "waiting...";
+    sleep 5;
+    [[ "$DB" != "None" ]] && break;
+    } done; echo $DB
+</code>
+</p>
+
+<p>
+<h3>Run instance</h3>
+Just as in previous article we will run instance.
+<code>
+    INSTANCE_ID=$(aws ec2 run-instances \
+    --image-id ami-0bbe6b35405ecebdb --instance-type t2.nano \
+    --key-name awskeys \
+    --query 'Instances[0].InstanceId')
+</code>
+Instance id will be saved to variable. You will be able to access to it with <code lang='language-bash'<pre>$INSTANCE_ID</pre></code> syntax<code>
+    echo $INSTANCE_ID
+</code>
+
+<p>
+<h3>Set up security rules for instance</h3>
+We need to assign security group to make it accessible. We've created MyPublicServer group in previous article. First let's figure out it's id.
+<code>
+    PUBLIC_SERVER_SG=$(aws ec2 describe-security-groups --group-names MyPublicServer --query SecurityGroups[0].GroupId)
+</code>
+We would also want to stay in <code lang='language-bash'<pre>default</pre></code> group to be able to access DB.<code>
+    DEFAULT_SG=$(aws ec2 describe-security-groups --group-names default --query SecurityGroups[0].GroupId)
+</code>
+Now we can assign it to instance. We Instance id and group ids will be taken from variables.
+<code>
+    aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups $PUBLIC_SERVER_SG $DEFAULT_SG
+</code>
+
+And obtain IP
+<code>
+    IP=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress')
+</code>
+IP is saved to variable
+</p>
+
+
+
+
+
+<p>
+<h3>Instance preparation</h3>
+To run node.js app on server node.js needs to be installed there. We used IP taken from $IP here
+<code>
+    ssh -i awskeys.pem ubuntu@$IP 'sudo apt-get update'
+    ssh -i awskeys.pem ubuntu@$IP 'sudo apt-get -y install npm'
+    ssh -i awskeys.pem ubuntu@$IP 'sudo apt-get -y install nodejs'
+</code>
+</p>
+
+<p>
+<h3>Deploy app</h3>
+Once we have instance up and running we can put our app there.
+<code>
+    scp -i awskeys.pem ./app.js ubuntu@$IP:app.js
+    scp -i awskeys.pem ./package.json ubuntu@$IP:package.json
+</code>
+
+Once app copied you need to get dependencies that are described in package.json installed to remote server.
+<code>
+    ssh -i awskeys.pem ubuntu@$IP 'sudo npm install'
+</code>
+
+You can check that dependencies installed by checking that <code lang='language-bash'<pre>npm_modules</pre></code> directory created.<code>
+    ssh -i awskeys.pem ubuntu@$IP 'ls'
+</code>
+</p>
+
+
+<p>
+<h3>Running app</h3>
+Instead of running app manually we will specify to run it on server start. In this way we will have running up after each server reboot.
+To do that we would need to create <code lang='language-bash'<pre>/etc/rc.local</pre></code> file. This script will be executed each time server starts.In this script we would simply start our app.
+
+<pre><code class='language-bash'>
+#!/usr/bin/env bash
+
+sudo su
+
+export PGHOST=i-mydb.c9g3umwxaa3u.us-west-2.rds.amazonaws.com
+export PGDATABASE=store
+export PGUSER=master
+export PGPASSWORD=secretpass
+
+
+node /home/ubuntu/app.js >> /home/ubuntu/logs.txt
+
+exit 0
+
+
+</code></pre>
+
+You need to set db endpoint to appropriate one. First we transfer file to server and then move it to the right destination
+<code>
+    scp -i awskeys.pem ./rc.local ubuntu@$IP:rc.local
+    ssh -i awskeys.pem ubuntu@$IP 'sudo mv ./rc.local /etc/rc.local'
+</code>
+
+To be actually called this script needs to be executable
+<code>
+    ssh -i awskeys.pem ubuntu@$IP 'sudo chmod +x /etc/rc.local'
+</code>
+</p>
+
+
+<p>
+<h3>Reboot</h3>
+Now, we can restart our server and check if our app working well
+<code>
+    aws ec2 reboot-instances --instance-ids $INSTANCE_ID
+</code>
+Once instance rebooted we should be able to access deployed app via browser.
+If something didn't work ssh-ing to instance and checking logs using <code lang='language-bash'<pre>sudo systemctl status rc-local.service</pre></code> is a good start.</p>
+
+<p>
+<h3>Create image</h3>
+We have our app up and running, but we dont't want to do all this configuration each time we want to run our app.
+Even if we you think that you need to run it once you might need to do some recovery procedure.
+Snapshot of the running instance is named image. It would include all system files as well as files that you put there.
+<code>
+    IMAGE=$(aws ec2 create-image --instance-id $INSTANCE_ID --name counterapp)
+</code>
+
+</p>
+
+<p>
+<h3>Runing app from the custom image</h3>
+Once image is ready you can run apps based on it. Just specify you custom image instead of ubuntu image in <code lang='language-bash'<pre>image-id</pre></code><code>
+    aws ec2 run-instances \
+    --image-id $IMAGE --instance-type t2.nano \
+    --key-name awskeys \
+    --query 'Instances[0].InstanceId'
+</code>
+And another one on more powerful server
+<code>
+    aws ec2 run-instances \
+    --image-id $IMAGE --instance-type t2.micro \
+    --key-name awskeys \
+    --query 'Instances[0].InstanceId'
+</code>
+You will beed to assign security group MyServer to make it accessible.
+After playing around don't forget to terminate instances and database to prevent extra charges.
+</p>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	<a href='./network-101'>Network 101</a></li><li>Part 3:	<a href='./instance'>Instance</a></li><li>Part 4:	Server</li><li><strong>Next:</strong> 	Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

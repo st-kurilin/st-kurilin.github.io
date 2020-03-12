@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Network 101</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Network 101</h1>
+<h2>In this article we will cover all network basic.</h2>
+<ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	Network 101</li><li>Part 3:	<a href='./instance'>Instance</a></li><li>Part 4:	<a href='./server'>Server</a></li><li>Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+
+<section>
+    <h3>IP addresses</h3>
+    <p>
+        Network can be viewed as connected devices that are interacting with each other.
+        To support such communication it's essential to provide uniq identifiers to each device.
+        Internet Protocol address (IP address) provides such identifiers. There are two version IPv4 and IPv6.
+        We will consider only IPv4 in this tutorial.
+    </p>
+    <p>
+        It's 32 values that can take zero or one (4 bytes in it 8 bits each)
+        <code lang='language-bash'<pre>0011001010.1011001010.1011001010.1011001110</pre></code>.    </p>
+    <p>
+        The common notions groups bytes into single number from 0 to 255.
+        Examples would be <code lang='language-bash'<pre>123.245.0.1</pre></code> or <code lang='language-bash'<pre>255.0.0.0</pre></code>.    </p>
+</section>
+
+<section>
+    <h3>Masks</h3>
+    <p>
+        It's common to describe a range of IP. Let's say from <code lang='language-bash'<pre>10.0.0.0 to 10.0.0.255</pre></code>.
+        The common notion for that would be <code lang='language-bash'<pre>10.10.0.0/8</pre></code>.        or even <code lang='language-bash'<pre>10.10/8</pre></code>.        <code lang='language-bash'<pre>10.10.0.0/16</pre></code> would mean 2 arbitrary bytes at the end: 10.10.*.* (<code lang='language-bash'<pre>10.0.0.0 to 10.0.255.255</pre></code>).    </p>
+</section>
+
+<section>
+
+    <h3>Private</h3>
+    <p>
+        IP addresses intended to be uniq in the internet.
+        However not all devices are intended to be accessible via internet. So there are reserved IP addresses that
+        might not be uniq.
+        10.0.0.0/24 (from 10.0.0.0 to 10.255.255.255), 172.16/12, 192.168/16.
+    </p>
+</section>
+<section>
+    <h3>Domain Name Server</h3>
+    <p>
+        People are not always that good with numbers. There for DNS created.
+        They simply store information that <code lang='language-bash'<pre>google.com</pre></code> stands for <code lang='language-bash'<pre>216.58.215.78</pre></code>.        It also allows google to change actual devices without asking you to enter different IP address next time you
+        want to search.
+    </p>
+</section>
+<section>
+
+    <h3>Protocols</h3>
+    <p>
+        IP address allowed us to identify device so that we can send information to it.
+        Protocol defines in with way information should be communicated. HTTP is a common protocol to access web pages.
+        SSH is protocol to execute commands on remote device.
+        One protocol can be based on other protocol, i.e. HTTP and SSH are based on TCP.
+    </p>
+</section>
+<section>
+    <h3>Ports</h3>
+    <p>
+        It's common that one device might be able to communicate via different protocols at the same time.
+        To do that it might run different programs. To specify with exact program on device you want to talk to ports
+        are used.
+        A common notion is putting port after IP: <code lang='language-bash'<pre>192.168.52.1:80</pre></code>. 80 is a common port to be used on under HTTP.        Web browsers default to HTTP protocol under port 80. so you don't need to enter
+        http://google.com:80 (or even http://216.58.215.78:80 !), but just google.com.
+    </p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./hello-aws'>Hello AWS</a></li><li>Part 2:	Network 101</li><li><strong>Next:</strong> 	Part 3:	<a href='./instance'>Instance</a></li><li>Part 4:	<a href='./server'>Server</a></li><li>Part 5:	<a href='./scaling'>Scaling</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>

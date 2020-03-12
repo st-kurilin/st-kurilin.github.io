@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="gotostan.com">
+    <title>Functions</title>
+</head>
+
+<body>
+
+<div class="nav">
+    <div onclick="window.location.href='../index.html'" style="cursor: pointer">
+        goto stan;
+    </div>
+</div>
+
+<div class="content">
+    <section>
+<h1>Functions</h1>
+<h2>We've composed data. Let's get thought and compose functions.</h2>
+<ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	Functions</li><li>Part 4:	<a href='./alternative-syntax.html'>Alternative Syntax</a></li><li>Part 5:	<a href='./use-case.html'>Use Case</a></li></ul>
+</section>
+<section>
+    <h3>Learning by Example: Counter</h3>
+    <p>
+        We'll learn functions by inspecting variations for counter implementation
+    </p>
+
+<pre><code class='language-javascript'>
+let value = 3;
+
+
+let inc = (other) => {
+    value = value + other;
+};
+
+console.log(value); //-> 3
+inc(4);
+console.log(value); //-> 7
+
+value = -999;
+console.log(value); //-> -999
+
+</code></pre>
+
+
+    Works fine. We can increment counter by some value. But there are two things to improve
+
+    <ul>
+        <li>We cannot have more than one counter.</li>
+        <li><code lang='language-bash'<pre>Value</pre></code> is not protected and can be changed outside <code lang='language-bash'<pre>inc</pre></code> function.</li>    </ul>
+
+    Our first solution for described issues
+
+<pre><code class='language-javascript'>
+let c1 = counter();
+let c2 = counter();
+console.log(c1());   //-> 1
+c1();
+c1();
+c2();
+
+console.log(c1());  //-> 4
+console.log(c2());  //-> 2
+</code></pre>
+
+    <p>
+        Each time we need a new counter we call <code lang='language-bash'<pre>counter</pre></code> function. It will return as a function that we save into        variable. We have function that constructs other functions! You might want to look closer to make sure you get it.
+    </p>
+    <p>
+        Next, each time we call that function value will be incremented and returned.
+        How we suppose to implement that?
+    </p>
+
+<pre><code class='language-javascript'>
+const counter = () => {
+    let value = 0;
+    let result = () => {
+        value = value + 1;
+        return value;
+    };
+    return result;
+};
+</code></pre>
+
+    Let's look closely. This is the most important example in understanding JS.
+    <ul>
+        <li>Inside <code lang='language-bash'<pre>counter</pre></code> we create two variables <code lang='language-bash'<pre>value</pre></code> and <code lang='language-bash'<pre>result</pre></code>.</li>        <li>They will not be available from outside and will be created each time we call <code lang='language-bash'<pre>counter</pre></code>.</li>        <li>Inside <code lang='language-bash'<pre>result</pre></code> function we can manipulate value. And <code lang='language-bash'<pre>result</pre></code> is the function that returned.</li>    </ul>
+    Now, we can add support for initial value.
+
+<pre><code class='language-javascript'>
+const counter = (init) => {
+    let value = init;
+    return (other) => {
+        value = value + other;
+        return value;
+    };
+};
+</code></pre>
+
+    Not that much different. Note that we can inline <code lang='language-bash'<pre>result</pre></code> function in <code lang='language-bash'<pre>counter</pre></code>.    <p>
+        It solved our initial issues, but it's not that nice to use. It would make sense to get syntax like
+    </p>
+<pre><code class='language-javascript'>
+let c1 = counter(3);
+let c2 = counter(2);
+
+console.log(c1.value()); //-> 3
+console.log(c2.value()); //-> 2
+
+let c3 = c1.inc(4).inc(5);
+
+console.log(c1.value()); //-> 3
+console.log(c3.value()); //-> 11
+</code></pre>
+
+    <p>
+    We can call <code lang='language-bash'<pre>value</pre></code> on counter to access value. And <code lang='language-bash'<pre>inc</pre></code> returns us a new counter.<br/>    When new counter changed the original counter remains same.<br/>
+    Understanding that result of <code lang='language-bash'<pre>inc</pre></code> is a new counter helps us with implementation.<br/>    </p>
+
+    The counter can be easily changed to inline functions into resulting object.
+
+<pre><code class='language-javascript'>
+let c1 = counter(3);
+let c2 = counter(2);
+
+console.log(c1.value()); //-> 3
+console.log(c2.value()); //-> 2
+
+let c3 = c1.inc(4).inc(5);
+
+console.log(c1.value()); //-> 3
+console.log(c3.value()); //-> 11
+</code></pre>
+
+    Before improving our counter even further let's learn get back on idea that functions that returns functions.
+
+<pre><code class='language-javascript'>
+let divider = (divisor) => {
+    return (dividend) => {
+        return dividend / divisor;
+    }
+};
+
+let by3 = divider(3);
+console.log(by3(9));    //-> 3
+console.log(by3(6));    //-> 2
+</code></pre>
+
+    Here we have a function that takes divisor and return function that will take dividend and return final result.
+    Can we make our counter work with such functions?
+
+<pre><code class='language-javascript'>
+let c1 = counter(27);
+
+console.log(c1.value()); //-> 27
+
+let c2 = c1.apply(by3);
+
+console.log(c1.value()); //-> 27
+console.log(c2.value()); //-> 9
+
+</code></pre>
+
+    Yes we just need to pass created function to counter as argument.
+
+<pre><code class='language-javascript'>
+const counter = (init) => {
+    return {
+        value: () => {
+            return init;
+        },
+        apply: (func) => {
+            return counter(func(init))
+        }
+    };
+};
+</code></pre>
+
+    As our final example we will allow user to specify the number of times this function should be applied
+
+<pre><code class='language-javascript'>
+let c1 = counter(27);
+
+console.log(c1.value()); //-> 27
+
+console.log(c1.apply(by3, 1).value());  //-> 9
+console.log(c1.apply(by3, 2).value());  //-> 3
+
+
+</code></pre>
+
+    Implementation might not be that obvious. But the reasoning might
+    be that to apply it <code lang='language-bash'<pre>N</pre></code> times you need to apply it once and then <code lang='language-bash'<pre>N-1</pre></code> times.
+
+<pre><code class='language-javascript'>
+const counter = (init) => {
+    return {
+        value: () => {
+            return init;
+        },
+        apply: (func, times) => {
+            if (times > 0) {
+                return counter(func(init)).apply(func, times - 1);
+            } else {
+                return counter(init);
+            }
+        }
+    };
+};
+</code></pre>
+
+
+    That it. Mastering this article will give you full understanding on how functions works.
+    It's not easy but rewarding.
+    </p>
+</section>
+<section><h3>Content</h3><ul><li>Part 1:	<a href='./basic-syntax.html'>Basic Syntax</a></li><li>Part 2:	<a href='./objects.html'>Objects</a></li><li>Part 3:	Functions</li><li><strong>Next:</strong> 	Part 4:	<a href='./alternative-syntax.html'>Alternative Syntax</a></li><li>Part 5:	<a href='./use-case.html'>Use Case</a></li></ul>
+</section>
+</div>
+<div class="footer">
+    <div>
+        Stanislav Kurilin. Let's get in touch via stan@gotostan.com
+    </div>
+</div>
+<style type="text/css" media="screen">
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #bebebe;
+    }
+    body div {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .nav, .footer {
+        width: 100%;
+        height: 72px;
+        background-color: #202124;
+        color: white;
+        font-size: 16px;
+        font-family: "Roboto Mono", monospace;
+        align-items: center;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+    .nav div, .footer div {
+        width: 800px;
+        margin: auto;
+    }
+    .nav {
+        margin-bottom: 16px;
+    }
+    .footer {
+        margin-top: 16px;
+    }
+    .content {
+        font-family: 'Roboto', sans-serif;
+        max-width: 800px;
+        margin-left: auto; margin-right: auto;
+    }
+
+    section {
+        width: 100%;
+        overflow: scroll;
+        padding: 16px;
+        margin-bottom: 16px;
+        top: 16px;
+        border-radius: 4px;
+        background-color: white;
+
+        box-shadow:
+                0px 1px 3px 0px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 2px 1px -1px rgba(0, 0, 0, 0.12);
+    }
+
+    section h1 {
+        font-size: 3.75rem;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -0.00833em;
+    }
+    section h2 {
+        color: rgb(95, 99, 104);
+        font-size: 20px;
+        line-height: 1.6;
+        font-weight: normal;
+    }
+    section h3 {
+        font-size: 2.125rem;
+        font-weight: 400;
+        line-height: 1.17;
+        letter-spacing: 0.00735em;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/themes/prism.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-99689979-6"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99689979-6');
+</script>
+
+</body>
+</html>
